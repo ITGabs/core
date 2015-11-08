@@ -16,6 +16,7 @@ OC.L10N.register(
     "Not permitted to use authentication mechanism \"%s\"" : "Não é permitido usar o mecanismo de autenticação \"%s\"",
     "Unsatisfied backend parameters" : "Parâmetros de back-end não-atendidos",
     "Unsatisfied authentication mechanism parameters" : "Parâmetros de mecanismos de autenticação não satisfeitos",
+    "Insufficient data: %s" : "Dados insuficientes: %s",
     "Personal" : "Pessoal",
     "System" : "Sistema",
     "Grant access" : "Permitir acesso",
@@ -101,7 +102,7 @@ OC.L10N.register(
     "Advanced settings" : "Configurações avançadas",
     "Delete" : "Excluir",
     "Add storage" : "Adicionar Armazenamento",
-    "Allow users to mount external storages" : "Permitir que usuários possam realizar armazenamentos externos",
+    "Allow users to mount external storage" : "Permitir que usuários montem armazenamento externo",
     "Allow users to mount the following external storage" : "Permitir que usuários montem o seguinte armazenamento externo"
 },
 "nplurals=2; plural=(n > 1);");

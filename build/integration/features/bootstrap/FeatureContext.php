@@ -1,6 +1,7 @@
 <?php
 
-use Behat\Behat\Context\BehatContext;
+use Behat\Behat\Context\Context;
+use Behat\Behat\Context\SnippetAcceptingContext;
 use GuzzleHttp\Client;
 use GuzzleHttp\Message\ResponseInterface;
 
@@ -9,7 +10,7 @@ require __DIR__ . '/../../vendor/autoload.php';
 /**
  * Features context.
  */
-class FeatureContext extends BehatContext {
+class FeatureContext implements Context, SnippetAcceptingContext {
 
 	/** @var string */
 	private $baseUrl = '';
@@ -23,18 +24,21 @@ class FeatureContext extends BehatContext {
 	/** @var int */
 	private $apiVersion = 1;
 
-	/**
-	 * Initializes context.
-	 * Every scenario gets it's own context object.
-	 *
-	 * @param array $parameters context parameters (set them up through behat.yml)
-	 */
-	public function __construct(array $parameters) {
+	/** @var SimpleXMLElement */
+	private $lastShareData = null;
+
+	/** @var array */
+	private $createdUsers = [];
+
+	/** @var array */
+	private $createdGroups = [];
+
+	public function __construct($baseUrl, $admin, $regular_user_password) {
 
 		// Initialize your context here
-		$this->baseUrl = $parameters['baseUrl'];
-		$this->adminUser = $parameters['admin'];
-		$this->regularUser = $parameters['regular_user_password'];
+		$this->baseUrl = $baseUrl;
+		$this->adminUser = $admin;
+		$this->regularUser = $regular_user_password;
 
 		// in case of ci deployment we take the server url from the environment
 		$testServerUrl = getenv('TEST_SERVER_URL');
@@ -197,16 +201,27 @@ class FeatureContext extends BehatContext {
 	/**
 	 * @Given /^user "([^"]*)" exists$/
 	 */
-	public function userExists($user) {
+	public function assureUserExists($user) {
+		try {
+			$this->userExists($user);			
+		} catch (\GuzzleHttp\Exception\ClientException $ex) {
+			$previous_user = $this->currentUser;
+			$this->currentUser = "admin";
+			$this->creatingTheUser($user);
+			$this->currentUser = $previous_user;
+		}
+		$this->userExists($user);
+		PHPUnit_Framework_Assert::assertEquals(200, $this->response->getStatusCode());
+
+	}
+
+	public function userExists($user){
 		$fullUrl = $this->baseUrl . "v2.php/cloud/users/$user";
 		$client = new Client();
 		$options = [];
-		if ($this->currentUser === 'admin') {
-			$options['auth'] = $this->adminUser;
-		}
+		$options['auth'] = $this->adminUser;
 
 		$this->response = $client->get($fullUrl, $options);
-		PHPUnit_Framework_Assert::assertEquals(200, $this->response->getStatusCode());
 	}
 
 	/**
@@ -284,14 +299,23 @@ class FeatureContext extends BehatContext {
 		PHPUnit_Framework_Assert::assertEquals(200, $this->response->getStatusCode());
 	}
 
-
 	/**
 	 * @Given /^user "([^"]*)" does not exist$/
 	 */
 	public function userDoesNotExist($user) {
 		try {
 			$this->userExists($user);
-			PHPUnit_Framework_Assert::fail('The user "' . $user . '" exists');
+		} catch (\GuzzleHttp\Exception\ClientException $ex) {
+			$this->response = $ex->getResponse();
+			PHPUnit_Framework_Assert::assertEquals(404, $ex->getResponse()->getStatusCode());
+			return;
+		}
+		$previous_user = $this->currentUser;
+		$this->currentUser = "admin";
+		$this->deletingTheUser($user);
+		$this->currentUser = $previous_user;
+		try {
+			$this->userExists($user);
 		} catch (\GuzzleHttp\Exception\ClientException $ex) {
 			$this->response = $ex->getResponse();
 			PHPUnit_Framework_Assert::assertEquals(404, $ex->getResponse()->getStatusCode());
@@ -332,10 +356,78 @@ class FeatureContext extends BehatContext {
 		PHPUnit_Framework_Assert::assertEquals(200, $this->response->getStatusCode());
 	}
 
-	/**
-	 * @When /^creating the user "([^"]*)r"$/
-	 */
+	public function createUser($user) {
+		$previous_user = $this->currentUser;
+		$this->currentUser = "admin";
+		$this->creatingTheUser($user);
+		$this->userExists($user);
+		$this->currentUser = $previous_user;
+	}
+
+	public function deleteUser($user) {
+		$previous_user = $this->currentUser;
+		$this->currentUser = "admin";
+		$this->deletingTheUser($user);
+		$this->userDoesNotExist($user);
+		$this->currentUser = $previous_user;
+	}
+
+	public function createGroup($group) {
+		$previous_user = $this->currentUser;
+		$this->currentUser = "admin";
+		$this->creatingTheGroup($group);
+		$this->groupExists($group);
+		$this->currentUser = $previous_user;
+	}
+
+	public function deleteGroup($group) {
+		$previous_user = $this->currentUser;
+		$this->currentUser = "admin";
+		$this->deletingTheGroup($group);
+		$this->groupDoesNotExist($group);
+		$this->currentUser = $previous_user;
+	}
+
 	public function creatingTheUser($user) {
+		$fullUrl = $this->baseUrl . "v{$this->apiVersion}.php/cloud/users";
+		$client = new Client();
+		$options = [];
+		if ($this->currentUser === 'admin') {
+			$options['auth'] = $this->adminUser;
+		}
+
+		$options['body'] = [
+							'userid' => $user,
+							'password' => '123456'
+							];
+
+		$this->response = $client->send($client->createRequest("POST", $fullUrl, $options));
+		$this->createdUsers[$user] = $user;
+	}
+
+	/**
+	 * @When /^creating the group "([^"]*)"$/
+	 */
+	public function creatingTheGroup($group) {
+		$fullUrl = $this->baseUrl . "v{$this->apiVersion}.php/cloud/groups";
+		$client = new Client();
+		$options = [];
+		if ($this->currentUser === 'admin') {
+			$options['auth'] = $this->adminUser;
+		}
+
+		$options['body'] = [
+							'groupid' => $group,
+							];
+
+		$this->response = $client->send($client->createRequest("POST", $fullUrl, $options));
+		$this->createdGroups[$group] = $group;
+	}
+
+	/**
+	 * @When /^Deleting the user "([^"]*)"$/
+	 */
+	public function deletingTheUser($user) {
 		$fullUrl = $this->baseUrl . "v{$this->apiVersion}.php/cloud/users/$user";
 		$client = new Client();
 		$options = [];
@@ -343,45 +435,74 @@ class FeatureContext extends BehatContext {
 			$options['auth'] = $this->adminUser;
 		}
 
-		$this->response = $client->post($fullUrl, [
-			'form_params' => [
-				'userid' => $user,
-				'password' => '123456'
-			]
-		]);
-
+		$this->response = $client->send($client->createRequest("DELETE", $fullUrl, $options));
 	}
 
 	/**
-	 * @When /^creating the group "([^"]*)r"$/
+	 * @When /^Deleting the group "([^"]*)"$/
 	 */
-	public function creatingTheGroup($group) {
-		$fullUrl = $this->baseUrl . "v{$this->apiVersion}.php/cloud/groups/addgroup";
+	public function deletingTheGroup($group) {
+		$fullUrl = $this->baseUrl . "v{$this->apiVersion}.php/cloud/groups/$group";
 		$client = new Client();
 		$options = [];
 		if ($this->currentUser === 'admin') {
 			$options['auth'] = $this->adminUser;
 		}
 
-		$this->response = $client->post($fullUrl, [
-			'form_params' => [
-				'groupid' => $user
-			]
-		]);
+		$this->response = $client->send($client->createRequest("DELETE", $fullUrl, $options));
+	}
+
+	/**
+	 * @Given /^Add user "([^"]*)" to the group "([^"]*)"$/
+	 */
+	public function addUserToGroup($user, $group) {
+		$this->userExists($user);
+		$this->groupExists($group);
+		$this->addingUserToGroup($user, $group);
+
+	}
+
+	/**
+	 * @When /^User "([^"]*)" is added to the group "([^"]*)"$/
+	 */
+	public function addingUserToGroup($user, $group) {
+		$fullUrl = $this->baseUrl . "v{$this->apiVersion}.php/cloud/users/$user/groups";
+		$client = new Client();
+		$options = [];
+		if ($this->currentUser === 'admin') {
+			$options['auth'] = $this->adminUser;
+		}
+
+		$options['body'] = [
+							'groupid' => $group,
+							];
+
+		$this->response = $client->send($client->createRequest("POST", $fullUrl, $options));
+	}
+
+
+	public function groupExists($group) {
+		$fullUrl = $this->baseUrl . "v2.php/cloud/groups/$group";
+		$client = new Client();
+		$options = [];
+		$options['auth'] = $this->adminUser;
+
+		$this->response = $client->get($fullUrl, $options);
 	}
 
 	/**
 	 * @Given /^group "([^"]*)" exists$/
 	 */
-	public function groupExists($group) {
-		$fullUrl = $this->baseUrl . "v2.php/cloud/groups/$group";
-		$client = new Client();
-		$options = [];
-		if ($this->currentUser === 'admin') {
-			$options['auth'] = $this->adminUser;
+	public function assureGroupExists($group) {
+		try {
+			$this->groupExists($group);			
+		} catch (\GuzzleHttp\Exception\ClientException $ex) {
+			$previous_user = $this->currentUser;
+			$this->currentUser = "admin";
+			$this->creatingTheGroup($group);
+			$this->currentUser = $previous_user;
 		}
-
-		$this->response = $client->get($fullUrl, $options);
+		$this->groupExists($group);
 		PHPUnit_Framework_Assert::assertEquals(200, $this->response->getStatusCode());
 	}
 
@@ -391,7 +512,17 @@ class FeatureContext extends BehatContext {
 	public function groupDoesNotExist($group) {
 		try {
 			$this->groupExists($group);
-			PHPUnit_Framework_Assert::fail('The group "' . $group . '" exists');
+		} catch (\GuzzleHttp\Exception\ClientException $ex) {
+			$this->response = $ex->getResponse();
+			PHPUnit_Framework_Assert::assertEquals(404, $ex->getResponse()->getStatusCode());
+			return;
+		}
+		$previous_user = $this->currentUser;
+		$this->currentUser = "admin";
+		$this->deletingTheGroup($group);
+		$this->currentUser = $previous_user;
+		try {
+			$this->groupExists($group);
 		} catch (\GuzzleHttp\Exception\ClientException $ex) {
 			$this->response = $ex->getResponse();
 			PHPUnit_Framework_Assert::assertEquals(404, $ex->getResponse()->getStatusCode());
@@ -420,6 +551,231 @@ class FeatureContext extends BehatContext {
 			$this->response = $client->send($client->createRequest($verb, $fullUrl, $options));
 		} catch (\GuzzleHttp\Exception\ClientException $ex) {
 			$this->response = $ex->getResponse();
+		}
+	}
+
+	/**
+	 * @When /^creating a public share with$/
+	 * @param \Behat\Gherkin\Node\TableNode|null $formData
+	 */
+	public function createPublicShare($body) {
+		$this->sendingToWith("POST", "/apps/files_sharing/api/v1/shares", $body);
+		$this->lastShareData = $this->response->xml();
+	}
+
+	/**
+	 * @Then /^Public shared file "([^"]*)" can be downloaded$/
+	 */
+	public function checkPublicSharedFile($filename) {
+		$client = new Client();
+		$options = [];
+		$url = $this->lastShareData->data[0]->url;
+		$fullUrl = $url . "/download";
+		$options['save_to'] = "./$filename";
+		$this->response = $client->get($fullUrl, $options);
+		$finfo = new finfo;
+		$fileinfo = $finfo->file("./$filename", FILEINFO_MIME_TYPE);
+		PHPUnit_Framework_Assert::assertEquals($fileinfo, "text/plain");
+		if (file_exists("./$filename")) {
+        	unlink("./$filename");
+        }
+	}
+
+	/**
+	 * @Then /^Public shared file "([^"]*)" with password "([^"]*)" can be downloaded$/
+	 */
+	public function checkPublicSharedFileWithPassword($filename, $password) {
+		$client = new Client();
+		$options = [];
+		$token = $this->lastShareData->data[0]->token;
+		$fullUrl = substr($this->baseUrl, 0, -4) . "public.php/webdav";
+		$options['auth'] = [$token, $password];
+		$options['save_to'] = "./$filename";
+		$this->response = $client->get($fullUrl, $options);
+		$finfo = new finfo;
+		$fileinfo = $finfo->file("./$filename", FILEINFO_MIME_TYPE);
+		PHPUnit_Framework_Assert::assertEquals($fileinfo, "text/plain");
+		if (file_exists("./$filename")) {
+        	unlink("./$filename");
+        }
+	}
+
+	/**
+	 * @When /^Adding expiration date to last share$/
+	 */
+	public function addingExpirationDate() {
+		$share_id = $this->lastShareData->data[0]->id;
+		$fullUrl = $this->baseUrl . "v{$this->apiVersion}.php/apps/files_sharing/api/v{$this->apiVersion}/shares/$share_id";
+		$client = new Client();
+		$options = [];
+		if ($this->currentUser === 'admin') {
+			$options['auth'] = $this->adminUser;
+		} else {
+			$options['auth'] = [$this->currentUser, $this->regularUser];
+		}
+		$date = date('Y-m-d', strtotime("+3 days"));
+		$options['body'] = ['expireDate' => $date];
+		$this->response = $client->send($client->createRequest("PUT", $fullUrl, $options));
+		PHPUnit_Framework_Assert::assertEquals(200, $this->response->getStatusCode());
+	}
+
+	public function createShare($user,
+								$path = null, 
+								$shareType = null, 
+								$shareWith = null, 
+								$publicUpload = null, 
+								$password = null, 
+								$permissions = null){
+		$fullUrl = $this->baseUrl . "v{$this->apiVersion}.php/apps/files_sharing/api/v{$this->apiVersion}/shares";
+		$client = new Client();
+		$options = [];
+
+		if ($user === 'admin') {
+			$options['auth'] = $this->adminUser;
+		} else {
+			$options['auth'] = [$user, $this->regularUser];
+		}
+		$fd = [];
+		if (!is_null($path)){
+			$fd['path'] = $path; 
+		}
+		if (!is_null($shareType)){
+			$fd['shareType'] = $shareType; 
+		}
+		if (!is_null($shareWith)){
+			$fd['shareWith'] = $shareWith; 
+		}
+		if (!is_null($publicUpload)){
+			$fd['publicUpload'] = $publicUpload; 
+		}
+		if (!is_null($password)){
+			$fd['password'] = $password; 
+		}
+		if (!is_null($permissions)){
+			$fd['permissions'] = $permissions; 
+		}
+
+		$options['body'] = $fd;
+		
+		try {
+			$this->response = $client->send($client->createRequest("POST", $fullUrl, $options));
+			$this->lastShareData = $this->response->xml();
+		} catch (\GuzzleHttp\Exception\ClientException $ex) {
+			$this->response = $ex->getResponse();
+		}
+
+	}
+
+	public function isFieldInResponse($field, $content_expected){
+		$data = $this->response->xml()->data[0];
+		foreach($data as $element) {
+			if ($element->$field == $content_expected){
+				return True;
+			}
+		}
+		return False;
+	}
+
+	/**
+	 * @Then /^File "([^"]*)" should be included in the response$/
+	 */
+	public function checkSharedFileInResponse($filename){
+		PHPUnit_Framework_Assert::assertEquals(True, $this->isFieldInResponse('file_target', "/$filename"));
+	}
+
+	/**
+	 * @Then /^File "([^"]*)" should not be included in the response$/
+	 */
+	public function checkSharedFileNotInResponse($filename){
+		PHPUnit_Framework_Assert::assertEquals(False, $this->isFieldInResponse('file_target', "/$filename"));
+	}
+
+	public function isUserInSharedData($user){
+		$data = $this->response->xml()->data[0];
+		foreach($data as $element) {
+			if ($element->share_with == $user){
+				return True;
+			}
+		}
+		return False;
+	}
+
+	/**
+	 * @Given /^file "([^"]*)" from user "([^"]*)" is shared with user "([^"]*)"$/
+	 */
+	public function assureFileIsShared($filepath, $user1, $user2){
+		$fullUrl = $this->baseUrl . "v{$this->apiVersion}.php/apps/files_sharing/api/v{$this->apiVersion}/shares" . "?path=$filepath";
+		$client = new Client();
+		$options = [];
+		if ($user1 === 'admin') {
+			$options['auth'] = $this->adminUser;
+		} else {
+			$options['auth'] = [$user1, $this->regularUser];
+		}
+		$this->response = $client->get($fullUrl, $options);
+		if ($this->isUserInSharedData($user2)){
+			return;
+		} else {
+			$this->createShare($user1, $filepath, 0, $user2, null, null, null);
+		}
+		$this->response = $client->get($fullUrl, $options);
+		PHPUnit_Framework_Assert::assertEquals(True, $this->isUserInSharedData($user2));
+	}
+
+	/**
+	 * @When /^Deleting last share$/
+	 */
+	public function deletingLastShare(){
+		$share_id = $this->lastShareData->data[0]->id;
+		$url = "/apps/files_sharing/api/v{$this->apiVersion}/shares/$share_id";
+		$this->sendingToWith("DELETE", $url, null);
+	}
+
+	public static function removeFile($path, $filename){
+		if (file_exists("$path" . "$filename")) {
+			unlink("$path" . "$filename");
+        }
+	}
+
+	/**
+	 * @BeforeSuite
+	 */
+	public static function addFilesToSkeleton(){
+		for ($i=0; $i<5; $i++){
+			file_put_contents("../../core/skeleton/" . "textfile" . "$i" . ".txt", "ownCloud test text file\n");
+		}
+
+	}
+
+	/**
+	 * @AfterSuite
+	 */
+	public static function removeFilesFromSkeleton(){
+		for ($i=0; $i<5; $i++){
+			self::removeFile("../../core/skeleton/", "textfile" . "$i" . ".txt");
+        }
+	}
+
+	/**
+	 * @BeforeScenario
+	 * @AfterScenario
+	 */
+	public function cleanupUsers()
+	{
+		foreach($this->createdUsers as $user) {
+			$this->deleteUser($user);
+		}
+	}
+
+
+	/**
+	 * @BeforeScenario
+	 * @AfterScenario
+	 */
+	public function cleanupGroups()
+	{
+		foreach($this->createdGroups as $group) {
+			$this->deleteGroup($group);
 		}
 	}
 }

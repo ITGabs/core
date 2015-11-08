@@ -16,6 +16,7 @@ OC.L10N.register(
     "Not permitted to use authentication mechanism \"%s\"" : "Non autorisé à utiliser le mécanisme d'authentification \"%s\"",
     "Unsatisfied backend parameters" : "Paramètres manquants pour le service",
     "Unsatisfied authentication mechanism parameters" : "Paramètres manquants pour la méthode d'authentification",
+    "Insufficient data: %s" : "Données insuffisantes : %s",
     "Personal" : "Personnel",
     "System" : "Système",
     "Grant access" : "Autoriser l'accès",
@@ -83,7 +84,7 @@ OC.L10N.register(
     "Username as share" : "Nom d'utilisateur comme nom de partage",
     "OpenStack Object Storage" : "OpenStack Object Storage",
     "Service name" : "Nom du service",
-    "Request timeout (seconds)" : "Timeout des requêtes (en secondes)",
+    "Request timeout (seconds)" : "Délai d'expiration des requêtes (en secondes)",
     "<b>Note:</b> " : "<b>Attention :</b>",
     "<b>Note:</b> The cURL support in PHP is not enabled or installed. Mounting of %s is not possible. Please ask your system administrator to install it." : "<b>Attention :</b> La prise en charge de cURL par PHP n'est pas activée ou installée. Le montage de %s n'est pas possible. Contactez votre administrateur système pour l'installer.",
     "<b>Note:</b> The FTP support in PHP is not enabled or installed. Mounting of %s is not possible. Please ask your system administrator to install it." : "<b>Attention : </b> La prise en charge du FTP par PHP n'est pas activée ou installée. Le montage de %s n'est pas possible. Contactez votre administrateur système pour l'installer.",
@@ -101,7 +102,7 @@ OC.L10N.register(
     "Advanced settings" : "Paramètres avancés",
     "Delete" : "Supprimer",
     "Add storage" : "Ajouter un support de stockage",
-    "Allow users to mount external storages" : "Autoriser les utilisateurs à monter des espaces de stockage externes",
+    "Allow users to mount external storage" : "Autoriser les utilisateurs à monter des espaces de stockage externes",
     "Allow users to mount the following external storage" : "Autoriser les utilisateurs à monter les stockages externes suivants"
 },
 "nplurals=2; plural=(n > 1);");

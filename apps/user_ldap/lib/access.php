@@ -35,6 +35,7 @@
 
 namespace OCA\user_ldap\lib;
 
+use OCA\user_ldap\lib\user\OfflineUser;
 use OCA\User_LDAP\Mapping\AbstractMapping;
 
 /**
@@ -672,6 +673,20 @@ class Access extends LDAPUtility implements user\IUserTools {
 	}
 
 	/**
+	 * counts the number of users according to a provided loginName and
+	 * utilizing the login filter.
+	 *
+	 * @param string $loginName
+	 * @return array
+	 */
+	public function countUsersByLoginName($loginName) {
+		$loginName = $this->escapeFilterPart($loginName);
+		$filter = str_replace('%uid', $loginName, $this->connection->ldapLoginFilter);
+		$users = $this->countUsers($filter);
+		return $users;
+	}
+
+	/**
 	 * @param string $filter
 	 * @param string|string[] $attr
 	 * @param int $limit
@@ -696,6 +711,10 @@ class Access extends LDAPUtility implements user\IUserTools {
 			$ocName  = $this->dn2ocname($userRecord['dn'][0], $userRecord[$displayNameAttribute]);
 			$this->cacheUserExists($ocName);
 			$user = $this->userManager->get($ocName);
+			if($user instanceof OfflineUser) {
+				$user->unmark();
+				$user = $this->userManager->get($ocName);
+			}
 			$user->processAttributes($userRecord);
 		}
 	}

@@ -329,7 +329,8 @@ input:disabled+label, input:disabled:hover+label, input:disabled:focus+label {
 	opacity: .7;
 }
 .searchbox input[type="search"]:focus,
-.searchbox input[type="search"]:active {
+.searchbox input[type="search"]:active,
+.searchbox input[type="search"]:valid {
 	color: #fff;
 	width: 155px;
 	max-width: 50%;
@@ -585,30 +586,6 @@ input[type="submit"].enabled {
 	color: #ccc;
 }
 
-/* Icons for username and password fields to better recognize them */
-#adminlogin,
-#adminpass,
-input[name='adminpass-clone'],
-#user,
-#password,
-input[name='password-clone'] {
-	width: 223px !important;
-	padding-left: 36px !important;
-}
-#adminlogin+label+img,
-#adminpass-icon,
-#user+label+img,
-#password-icon {
-	position: absolute;
-	left: 16px;
-	top: 22px;
-	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
-	opacity: .3;
-}
-#adminpass-icon, #password-icon {
-	top: 17px;
-}
-
 /* General new input field look */
 #body-login input[type="text"],
 #body-login input[type="password"],
@@ -798,6 +775,9 @@ html.ie8 #body-login form input[type="checkbox"] {
 	color: #fff !important;
 	font-weight: 600 !important;
 }
+.error a.button {
+	color: #555 !important;
+}
 .error pre {
 	white-space: pre-wrap;
 	text-align: left;
@@ -879,26 +859,6 @@ html.ie8 #body-login form input[type="checkbox"] {
 #body-login footer, #body-login .push {
 	height: 70px;
 }
-
-
-
-
-/* VARIOUS REUSABLE SELECTORS */
-.hidden {
-	display: none;
-}
-.hidden-visually {
-	position: absolute;
-	left:-10000px;
-	top: auto;
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
-}
-
-.bold { font-weight:600; }
-.center { text-align:center; }
-.inlineblock { display: inline-block; }
 
 /* round profile photos */
 .avatar,
@@ -1204,4 +1164,3 @@ fieldset.warning legend + p, fieldset.update legend + p {
    opacity: 0;
    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
 }
-

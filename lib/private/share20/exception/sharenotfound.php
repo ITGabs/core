@@ -1,6 +1,6 @@
 <?php
 /**
-
+ * @author Roeland Jago Douma <rullzer@owncloud.com>
  *
  * @copyright Copyright (c) 2015, ownCloud, Inc.
  * @license AGPL-3.0
@@ -18,3 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *
  */
+namespace OC\Share20\Exception;
+
+class ShareNotFound extends \Exception {
+
+}

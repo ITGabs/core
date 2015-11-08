@@ -16,6 +16,7 @@ OC.L10N.register(
     "Not permitted to use authentication mechanism \"%s\"" : "S’i lejohet të përdorë mekanizmin e mirëfilltësimit \"%s\"",
     "Unsatisfied backend parameters" : "Parametra mekanizmi shërbimi të paplotësuar",
     "Unsatisfied authentication mechanism parameters" : "Parametra mekanizmi mirëfilltësimi të papërmbushur",
+    "Insufficient data: %s" : "Të dhëna të pamjaftueshme: %s",
     "Personal" : "Personale",
     "System" : "Sistem",
     "Grant access" : "Akordoji hyrje",
@@ -99,7 +100,7 @@ OC.L10N.register(
     "Advanced settings" : "Rregullime të mëtejshme",
     "Delete" : "Fshije",
     "Add storage" : "Shtoni depozitë",
-    "Allow users to mount external storages" : "Lejoju përdoruesve të montojnë depozita të jashtme",
+    "Allow users to mount external storage" : "Lejoju përdoruesve të montojnë depozita të jashtme",
     "Allow users to mount the following external storage" : "Lejoju përdoruesve të montojnë depozitën e jashtme vijuese"
 },
 "nplurals=2; plural=(n != 1);");

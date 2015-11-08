@@ -14,6 +14,7 @@
     "Not permitted to use authentication mechanism \"%s\"" : "Utilizzo del meccanismo di autenticazione \"%s\" non permesso",
     "Unsatisfied backend parameters" : "Parametri del motore non soddisfatti",
     "Unsatisfied authentication mechanism parameters" : "Parametri del meccanismo di autenticazione non soddisfatti",
+    "Insufficient data: %s" : "Dati insufficienti: %s",
     "Personal" : "Personale",
     "System" : "Sistema",
     "Grant access" : "Concedi l'accesso",
@@ -99,7 +100,7 @@
     "Advanced settings" : "Impostazioni avanzate",
     "Delete" : "Elimina",
     "Add storage" : "Aggiungi archiviazione",
-    "Allow users to mount external storages" : "Consenti agli utenti di montare archiviazioni esterne",
+    "Allow users to mount external storage" : "Consenti agli utenti di montare archiviazioni esterne",
     "Allow users to mount the following external storage" : "Consenti agli utenti di montare la seguente archiviazione esterna"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

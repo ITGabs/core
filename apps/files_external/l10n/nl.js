@@ -16,6 +16,7 @@ OC.L10N.register(
     "Not permitted to use authentication mechanism \"%s\"" : "Niet toegestaan om authenticatiemechanisme \"%s\" te gebruiken",
     "Unsatisfied backend parameters" : "Onvoldoende backend parameters",
     "Unsatisfied authentication mechanism parameters" : "Onvoldoende authenticatiemechanisme parameters",
+    "Insufficient data: %s" : "Onvoldoende gegevens: %s",
     "Personal" : "Persoonlijk",
     "System" : "Systeem",
     "Grant access" : "Sta toegang toe",
@@ -101,7 +102,7 @@ OC.L10N.register(
     "Advanced settings" : "Geavanceerde instellingen",
     "Delete" : "Verwijder",
     "Add storage" : "Toevoegen opslag",
-    "Allow users to mount external storages" : "Sta gebruikers toe om een externe opslag aan te koppelen.",
+    "Allow users to mount external storage" : "Sta gebruikers toe om een externe opslag aan te koppelen",
     "Allow users to mount the following external storage" : "Sta gebruikers toe de volgende externe opslag aan te koppelen"
 },
 "nplurals=2; plural=(n != 1);");

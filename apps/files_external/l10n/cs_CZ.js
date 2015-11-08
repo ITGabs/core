@@ -16,6 +16,7 @@ OC.L10N.register(
     "Not permitted to use authentication mechanism \"%s\"" : "Nebylo povoleno použití ověřovacího mechanismu \"%s\"",
     "Unsatisfied backend parameters" : "Neuspokojivé parametry služby",
     "Unsatisfied authentication mechanism parameters" : "Neuspokojivé parametry ověřovacího mechanismu",
+    "Insufficient data: %s" : "Nedostatečná data: %s",
     "Personal" : "Osobní",
     "System" : "Systém",
     "Grant access" : "Povolit přístup",
@@ -46,6 +47,8 @@ OC.L10N.register(
     "OpenStack" : "OpenStack",
     "Username" : "Uživatelské jméno",
     "Password" : "Heslo",
+    "Tenant name" : "Jméno vlastníka",
+    "Identity endpoint URL" : "Identifikační koncový bod URL",
     "Rackspace" : "Rackspace",
     "API key" : "Klíč API",
     "Username and password" : "Uživatelské jméno a heslo",
@@ -99,7 +102,7 @@ OC.L10N.register(
     "Advanced settings" : "Pokročilá nastavení",
     "Delete" : "Smazat",
     "Add storage" : "Přidat úložiště",
-    "Allow users to mount external storages" : "Povolit uživatelům připojení externích úložišť",
+    "Allow users to mount external storage" : "Povolit uživatelům připojení externího úložiště",
     "Allow users to mount the following external storage" : "Povolit uživatelů připojit následující externí úložiště"
 },
 "nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;");

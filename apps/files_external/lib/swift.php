@@ -106,7 +106,10 @@ class Swift extends \OC\Files\Storage\Common {
 			$this->getContainer()->getPartialObject($path);
 			return true;
 		} catch (ClientErrorResponseException $e) {
-			\OCP\Util::writeLog('files_external', $e->getMessage(), \OCP\Util::ERROR);
+			// Expected response is "404 Not Found", so only log if it isn't
+			if ($e->getResponse()->getStatusCode() !== 404) {
+				\OCP\Util::writeLog('files_external', $e->getMessage(), \OCP\Util::ERROR);
+			}
 			return false;
 		}
 	}
@@ -359,18 +362,6 @@ class Swift extends \OC\Files\Storage\Common {
 
 				return fopen('close://' . $tmpFile, $mode);
 		}
-	}
-
-	public function getMimeType($path) {
-		$path = $this->normalizePath($path);
-
-		if ($this->is_dir($path)) {
-			return 'httpd/unix-directory';
-		} else if ($this->file_exists($path)) {
-			$object = $this->getContainer()->getPartialObject($path);
-			return $object->getContentType();
-		}
-		return false;
 	}
 
 	public function touch($path, $mtime = null) {

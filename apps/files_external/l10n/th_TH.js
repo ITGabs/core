@@ -16,6 +16,7 @@ OC.L10N.register(
     "Not permitted to use authentication mechanism \"%s\"" : "ไม่อนุญาตให้ตรวจสอบการรับรองความถูกต้อง \"%s\"",
     "Unsatisfied backend parameters" : "พารามิเตอร์แบ็กเอนด์ไม่ได้รับอนุญาต",
     "Unsatisfied authentication mechanism parameters" : "การรับรองความถูกต้องไม่เพียงพอ",
+    "Insufficient data: %s" : "ข้อมูลไม่เพียงพอ: %s",
     "Personal" : "ส่วนตัว",
     "System" : "ระบบ",
     "Grant access" : "อนุญาตให้เข้าถึงได้",
